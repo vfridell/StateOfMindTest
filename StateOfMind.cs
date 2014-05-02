@@ -12,8 +12,8 @@ namespace StateOfMindTest
 
         public StateOfMind()
         {
-            _routines.Add(new Dream());
-            //_routines.Add(new PersonID());
+            //_routines.Add(new Dream());
+            _routines.Add(new PersonID());
         }
 
         public void RunRoutine()

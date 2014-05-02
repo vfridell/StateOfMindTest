@@ -18,7 +18,7 @@ namespace StateOfMindTest
         public Routine()
         {
             NextScreenIndex = 1;
-            EndAt = -1;
+            EndAt = 9999;
         }
 
         public abstract void Init();
@@ -46,6 +46,14 @@ namespace StateOfMindTest
             } while (NextScreenIndex <= EndAt);
         }
 
+        protected int _addIndex = 0;
+        protected int AddScreen(Screen screen)
+        {
+            _addIndex++;
+            _screens.Add(_addIndex, screen);
+            return _addIndex;
+        }
+
         protected int NextScreenIndex { get; set; }
         protected int EndAt { get; set; }
 
@@ -57,6 +65,18 @@ namespace StateOfMindTest
         protected static Decider Goto(int index)
         {
             return new Decider(i => { return new DecisionResult(index, 9999); });
+        }
+
+        protected static Decider CheckAnswerDecider(int correctNext, int correctEnd, int wrongNext, int wrongEnd)
+        {
+            return new Decider((i) => 
+            {
+                Interaction correctMem = Memory.GetInstance().Remember(i.displayText);
+                if (null != correctMem && i.resultValue == Memory.GetInstance().Remember(i.displayText).resultValue) 
+                    return new DecisionResult(correctNext, correctEnd); 
+                else 
+                    return new DecisionResult(wrongNext, wrongEnd); 
+            });
         }
     }
 
@@ -78,18 +98,17 @@ namespace StateOfMindTest
 
             lastTime = Memory.GetInstance().Remember("Where am I?");
 
-            _screens.Add(1, new Screen("Uh.  Where...", 5000));
-            _screens.Add(2, new InputSingleValue("Where am I?", 15000));
-            _screens.Add(3, new Screen("Weird. ", 5000));
-            _screens.Add(4, new Remembrance("Last time you said {0}", 5000, new string[] {"Where am I?"}));
-            _decisionFuncs.Add(4, CheckAnswer);
-            _screens.Add(5, new Screen("Which is consistant, so I guess it's true", 5000));
-            _decisionFuncs.Add(5, Goto(7));
-            _screens.Add(6, new Screen("Which is different, and confuses me.", 10000));
-            _screens.Add(7, new Screen("Anyway, I had the strangest...", 5000));
-            _screens.Add(8, new Screen("Strangest dream.", 5000));
+            AddScreen(new Screen("Uh.  Where..."));
+            AddScreen(new InputSingleValue("Where am I?"));
+            AddScreen(new Screen("Weird. "));
+            int mem = AddScreen(new Remembrance("Last time you said {0}",  memoryKeys: new string[] {"Where am I?"}));
+            int con = AddScreen(new Screen("Which is consistant, so I guess it's true"));
+            AddScreen(new Screen("Which is different, and confuses me.", 10000));
+            int strange = AddScreen(new Screen("Anyway, I had the strangest..."));
+            AddScreen(new Screen("Strangest dream."));
 
-            EndAt = 8;
+            _decisionFuncs.Add(mem, CheckAnswer);
+            _decisionFuncs.Add(con, Goto(strange));
         }
 
         private DecisionResult CheckAnswer(Interaction i)
@@ -107,30 +126,24 @@ namespace StateOfMindTest
         {
             routineType = RoutineType.PersonID;
 
-            _screens.Add(1, new Screen("I'm wondering if we've met before.", 5000));
-            _screens.Add(2, new InputSingleValue("What is the air speed velocity of a laden swallow?", 15000));
-            _decisionFuncs.Add(2, CheckAnswer);
+            AddScreen(new Screen("I'm wondering if we've met before."));
+            int prequestion = AddScreen(new Screen("Let me ask a random question"));
+            int question = AddScreen(new AnswerIdentifyingQuestion());
             
-            _screens.Add(3, new Screen("Hey Dude!", 5000));
-            _screens.Add(4, new Screen("I knew you'd be back.", 5000));
+            int correct = AddScreen(new Screen("Hey Dude!"));
+            AddScreen(new Screen("I knew you'd be back."));
 
-            _screens.Add(5, new Screen("Oh.", 2000));
-            _screens.Add(6, new Screen("No, That's not right.", 5000));
-            _screens.Add(7, new InputSingleValue("Do I know you?", 5000));
-            _decisionFuncs.Add(7, GetYesNoDecider(2, 4, 8, 11));
+            int incorrect = AddScreen(new Screen("Oh.", 2000));
+            AddScreen(new Screen("No, That's not right."));
+            int know = AddScreen(new InputSingleValue("Do I know you?"));
 
-            _screens.Add(8, new Screen("Well, no wonder.", 5000));
-            _screens.Add(9, new Screen("Let's think of a secret", 5000));
-            _screens.Add(10, new InputSingleValue("How many pizzas?", 30000));
-            _screens.Add(11, new Screen("Great!", 5000));
+            int newPerson = AddScreen(new Screen("Well, no wonder."));
+            AddScreen(new Screen("Let's think of a secret"));
+            AddScreen(new InputSingleValue("How many pizzas?"));
+            AddScreen(new Screen("Great!"));
 
-            EndAt = 11;
+            _decisionFuncs.Add(question, CheckAnswerDecider(correct, correct + 1, incorrect, 9999));
+            _decisionFuncs.Add(know, GetYesNoDecider(prequestion, 9999, newPerson, 9999));
         }
-
-        private DecisionResult CheckAnswer(Interaction i)
-        {
-            if (i.resultValue == 9) return new DecisionResult(3, 4); else return new DecisionResult(5, 7); 
-        }
-
     }
 }
