@@ -19,12 +19,6 @@ namespace StateOfMindTest
 
         public void RunRoutine()
         {
-            Memory.GetInstance().AddToMemory(new Interaction() { resultValue = 5, displayText = "Where am I?" });
-
-             Memory.GetInstance().AddToMemory(new Interaction() { resultValue = 5, displayText = "What's the secret number?" });
-             Memory.GetInstance().AddToMemory(new Interaction() { resultValue = 5, displayText = "What's the air speed velocity of a laden swallow?" });
-             Memory.GetInstance().AddToMemory(new Interaction() { resultValue = 5, displayText = "What time do we let the dogs out?" });
-
             foreach (Routine r in _routines)
             {
                 r.Init();

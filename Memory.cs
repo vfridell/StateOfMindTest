@@ -15,32 +15,46 @@ namespace StateOfMindTest
             if (null == _instance)
             {
                 _instance = new Memory();
+                _instance.AddToMemory(new Interaction() { resultValue = 5, displayText = "What's the secret number?" }, true);
+                _instance.AddToMemory(new Interaction() { resultValue = 5, displayText = "What's the air speed velocity of a laden swallow?" }, true);
+                _instance.AddToMemory(new Interaction() { resultValue = 5, displayText = "What time do we let the dogs out?" }, true);
             }
             return _instance;
         }
 
-        private List<Interaction> _interactions = new List<Interaction>();
+        private List<Interaction> _shortTerm = new List<Interaction>();
+        private List<Interaction> _longTerm = new List<Interaction>();
         private Dictionary<string, Interaction> _textMemory = new Dictionary<string, Interaction>();
         public Interaction LastInteraction
         { 
             get 
             {
-                if (_interactions.Count < 1)
-                    return new Interaction();
+                if (_shortTerm.Count > 1)
+                    return _shortTerm[_shortTerm.Count - 1];
+                else if (_longTerm.Count > 1)
+                    return _longTerm[_longTerm.Count - 1];
                 else
-                    return _interactions[_interactions.Count - 1];
+                    return new Interaction();
             }
         }
 
-        public void AddToMemory(Interaction interaction)
+        public void AddToMemory(Interaction interaction, bool longTerm = false)
         {
             interaction.timestamp = DateTime.Now;
-            _interactions.Add(interaction);
+            _shortTerm.Add(interaction);
+            if(longTerm) _longTerm.Add(interaction);
             _textMemory[interaction.displayText] = interaction;
         }
 
-        public Interaction Remember(string text)
+        public Interaction Remember(string text, bool longTerm = false)
         {
+            Interaction remembered;
+            if (longTerm)
+            {
+                remembered = _longTerm.FirstOrDefault(i => i.displayText == text);
+                if (null != remembered) return remembered;
+            }
+
             if(!_textMemory.ContainsKey(text)) return null;
             return _textMemory[text];
         }
@@ -58,8 +72,26 @@ namespace StateOfMindTest
         {
             get
             {
-                return Questions.Where<string>(s => Remember(s) != null).ToList<string>();
+                return Questions.Where<string>(s => Remember(s, true) != null).ToList<string>();
             }
         }
+
+        public List<string> PlayerNames = new List<string>()
+        {
+            "Sparky",
+            "Mr Pibb",
+            "The Swiper",
+            "Father Time",
+            "West Wind",
+            "Doc Nasty"
+        };
+
+        //public string UsedPlayerNames
+        //{
+        //    get
+        //    {
+        //        return Questions.Where<string>((s) => { Remember(s) != null; });
+        //    }
+        //}
     }
 }

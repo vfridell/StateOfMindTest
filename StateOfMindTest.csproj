@@ -41,12 +41,15 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="IGetInput.cs" />
+    <Compile Include="IScreenRenderer.cs" />
     <Compile Include="Memory.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Routine.cs" />
-    <Compile Include="Screen.cs" />
+    <Compile Include="Face.cs" />
     <Compile Include="Interaction.cs" />
+    <Compile Include="ScreenParameters.cs" />
     <Compile Include="StateOfMind.cs" />
   </ItemGroup>
   <ItemGroup>
