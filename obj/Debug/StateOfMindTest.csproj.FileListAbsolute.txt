@@ -7,3 +7,9 @@ C:\WorkRoot\Projects\StateOfMindTest\obj\Debug\StateOfMindTest.pdb
 C:\WorkRoot\Projects\StateOfMindTest2\bin\Debug\StateOfMindTest.exe.config
 C:\WorkRoot\Projects\StateOfMindTest2\obj\Debug\StateOfMindTest.exe
 C:\WorkRoot\Projects\StateOfMindTest2\obj\Debug\StateOfMindTest.pdb
+C:\Users\gusknows\Documents\Projects\StateOfMindTest\bin\Debug\StateOfMindTest.exe.config
+C:\Users\gusknows\Documents\Projects\StateOfMindTest\obj\Debug\StateOfMindTest.exe
+C:\Users\gusknows\Documents\Projects\StateOfMindTest\obj\Debug\StateOfMindTest.pdb
+C:\Users\gusknows\Documents\Projects\StateOfMindTest\bin\Debug\StateOfMindTest.exe
+C:\Users\gusknows\Documents\Projects\StateOfMindTest\bin\Debug\StateOfMindTest.pdb
+C:\Users\gusknows\Documents\Projects\StateOfMindTest\obj\Debug\StateOfMindTest.csprojResolveAssemblyReference.cache

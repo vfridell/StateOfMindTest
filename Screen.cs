@@ -57,6 +57,9 @@ namespace StateOfMindTest
 
     public class AnswerIdentifyingQuestion : Screen, IDisposable
     {
+        public static readonly string AllQuestionsAsked = "I've asked all my questions.";
+        public static readonly string NoOneKnown = "Uh, never mind";
+
         private IEnumerator<string> _questionEnumerator;
 
         public AnswerIdentifyingQuestion(int millisecondTimeout = 30000)
@@ -72,7 +75,8 @@ namespace StateOfMindTest
 
             if (Memory.GetInstance().QuestionsWithAnswers.Count == 0)
             {
-                _displayText = "Uh, never mind";
+                _displayText = NoOneKnown;
+                result.resultValue = 1;
                 result.displayText = _displayText;
                 Console.WriteLine(_displayText);
                 Thread.Sleep(5000);
@@ -81,7 +85,8 @@ namespace StateOfMindTest
 
             if (!_questionEnumerator.MoveNext())
             {
-                _displayText = "I've asked all my questions.";
+                _displayText = AllQuestionsAsked;
+                result.resultValue = 1;
                 result.displayText = _displayText;
                 Console.WriteLine(_displayText);
                 Thread.Sleep(5000);
@@ -89,8 +94,9 @@ namespace StateOfMindTest
             }
             else
             {
-                result.displayText = _displayText;
                 _displayText = _questionEnumerator.Current;
+                result.displayText = _displayText;
+                Console.WriteLine(_displayText);
                 Task task = Task.Run(() =>
                 {
                     string val = Console.ReadLine();

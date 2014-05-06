@@ -78,6 +78,24 @@ namespace StateOfMindTest
                     return new DecisionResult(wrongNext, wrongEnd); 
             });
         }
+
+        protected static Decider CheckPersonKnownDecider(int yesNext, int yesEnd, int noNext, int noEnd)
+        {
+            return new Decider((i) =>
+            {
+                if (i.displayText == AnswerIdentifyingQuestion.NoOneKnown ||
+                    i.displayText == AnswerIdentifyingQuestion.AllQuestionsAsked)
+                {
+                    return new DecisionResult(noNext, noEnd);
+                }
+
+                Interaction correctMem = Memory.GetInstance().Remember(i.displayText);
+                if (null != correctMem && i.resultValue == Memory.GetInstance().Remember(i.displayText).resultValue)
+                    return new DecisionResult(yesNext, yesEnd);
+                else
+                    return new DecisionResult(noNext, noEnd);
+            });
+        }
     }
 
     public class DecisionResult
@@ -127,23 +145,76 @@ namespace StateOfMindTest
             routineType = RoutineType.PersonID;
 
             AddScreen(new Screen("I'm wondering if we've met before."));
-            int prequestion = AddScreen(new Screen("Let me ask a random question"));
-            int question = AddScreen(new AnswerIdentifyingQuestion());
-            
-            int correct = AddScreen(new Screen("Hey Dude!"));
-            AddScreen(new Screen("I knew you'd be back."));
+            if (Memory.GetInstance().QuestionsWithAnswers.Count > 0)
+            {
+                int prequestion = AddScreen(new Screen("Lets see..."));
+                int question = AddScreen(new AnswerIdentifyingQuestion());
 
-            int incorrect = AddScreen(new Screen("Oh.", 2000));
-            AddScreen(new Screen("No, That's not right."));
-            int know = AddScreen(new InputSingleValue("Do I know you?"));
+                int correct = AddScreen(new Screen("Hey Dude!"));
+                AddScreen(new Screen("I knew you'd be back."));
 
-            int newPerson = AddScreen(new Screen("Well, no wonder."));
-            AddScreen(new Screen("Let's think of a secret"));
-            AddScreen(new InputSingleValue("How many pizzas?"));
-            AddScreen(new Screen("Great!"));
+                int incorrect = AddScreen(new Screen("Oh.", 2000));
+                AddScreen(new Screen("No, That's not right."));
+                int know = AddScreen(new InputSingleValue("Do I know you?"));
 
-            _decisionFuncs.Add(question, CheckAnswerDecider(correct, correct + 1, incorrect, 9999));
-            _decisionFuncs.Add(know, GetYesNoDecider(prequestion, 9999, newPerson, 9999));
+                int newPerson = AddScreen(new Screen("Well, no wonder."));
+                AddScreen(new Screen("Let's think of a secret"));
+                AddScreen(new InputSingleValue("How many pizzas?"));
+                AddScreen(new Screen("Great!"));
+
+                _decisionFuncs.Add(question, CheckPersonKnownDecider(correct, correct + 1, incorrect, 9999));
+                _decisionFuncs.Add(know, GetYesNoDecider(prequestion, 9999, newPerson, 9999));
+            }
+            else
+            {
+                AddScreen(new Screen("But I guess that's not possible"));
+            }
+        }
+    }
+
+    public class PersonIDRun : Routine
+    {
+        public override void Init()
+        {
+            routineType = RoutineType.PersonID;
+        }
+
+        public override void Run()
+        {
+
+            new Screen("I'm wondering if we've met before.").Render();
+            if (Memory.GetInstance().QuestionsWithAnswers.Count > 0)
+            {
+                new Screen("Lets see...").Render();
+                Interaction answer;
+                do
+                {
+                    answer = new AnswerIdentifyingQuestion().Render();
+                    if (answer.resultValue == Memory.GetInstance().Remember(answer.displayText).resultValue)
+                    {
+                        new Screen("Hey Dude!").Render();
+                        new Screen("I knew you'd be back.").Render();
+                        return;
+                    }
+                    new Screen("Oh.", 2000).Render();
+                    new Screen("No, That's not right.").Render();
+                    Interaction knowYou = new InputSingleValue("Do I know you?").Render();
+                    if (knowYou.resultValue == 2)
+                    {
+                        new Screen("Well, no wonder.").Render();
+                        new Screen("Let's think of a secret").Render();
+                        new InputSingleValue("How many pizzas?").Render();
+                        new Screen("Great!").Render();
+                        return;
+                    }
+                    new Screen("Well then, let's maybe try another").Render();
+                } while (answer.displayText != AnswerIdentifyingQuestion.AllQuestionsAsked);
+                new Screen("I've asked them all.  I don't think we've met").Render();
+            }
+            else
+            {
+                new Screen("But I guess that's not possible").Render();
+            }
         }
     }
 }
