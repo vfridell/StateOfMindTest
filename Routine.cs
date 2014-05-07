@@ -8,23 +8,13 @@ namespace StateOfMindTest
 {
     public abstract class Routine
     {
-        public delegate DecisionResult Decider(Interaction interaction);
-        protected Dictionary<int, Decider> _decisionFuncs = new Dictionary<int, Decider>();
-
         public enum RoutineType { Sleeping, Dawn, Awake, Dusk, PersonID };
         public RoutineType routineType;
 
         public Routine() { }
 
         public abstract void Init();
-        public abstract void Run();
-    }
-
-    public class DecisionResult
-    {
-        public DecisionResult(int next, int end) { NextIndex = next; EndAt = end; }
-        public int NextIndex { get; set; }
-        public int EndAt { get; set; }
+        public abstract Interaction Run();
     }
 
     /*
@@ -60,41 +50,7 @@ namespace StateOfMindTest
         }
     }
      * */
-    /*
-    public class PersonID : Routine
-    {
-        public override void Init()
-        {
-            routineType = RoutineType.PersonID;
 
-            AddScreen(new Talk("I'm wondering if we've met before."));
-            if (Memory.GetInstance().QuestionsWithAnswers.Count > 0)
-            {
-                int prequestion = AddScreen(new Talk("Lets see..."));
-                int question = AddScreen(new AnswerIdentifyingQuestion());
-
-                int correct = AddScreen(new Talk("Hey Dude!"));
-                AddScreen(new Talk("I knew you'd be back."));
-
-                int incorrect = AddScreen(new Talk("Oh.", 2000));
-                AddScreen(new Talk("No, That's not right."));
-                int know = AddScreen(new InputSingleValue("Do I know you?"));
-
-                int newPerson = AddScreen(new Talk("Well, no wonder."));
-                AddScreen(new Talk("Let's think of a secret"));
-                AddScreen(new InputSingleValue("How many pizzas?"));
-                AddScreen(new Talk("Great!"));
-
-                _decisionFuncs.Add(question, CheckPersonKnownDecider(correct, correct + 1, incorrect, 9999));
-                _decisionFuncs.Add(know, GetYesNoDecider(prequestion, 9999, newPerson, 9999));
-            }
-            else
-            {
-                AddScreen(new Talk("But I guess that's not possible"));
-            }
-        }
-    }
-    */
     public class PersonIDRun : Routine
     {
         public override void Init()
@@ -102,7 +58,7 @@ namespace StateOfMindTest
             routineType = RoutineType.PersonID;
         }
 
-        public override void Run()
+        public override Interaction Run()
         {
             var renderer = new ConsoleRenderer();
             var input = new ConsoleInput();
@@ -115,31 +71,78 @@ namespace StateOfMindTest
                 foreach(string question in Memory.GetInstance().QuestionsWithAnswers)
                 {
                     Interaction answer = face.GetSingleValue(question, 30000);
-                    if (answer.resultValue == Memory.GetInstance().Remember(answer.displayText, true).resultValue)
+                    Interaction player = Memory.GetInstance().Remember(answer.displayText, true);
+                    if (answer.resultValue == player.resultValue)
                     {
-                        face.Talk("Hey, {0}!");
+                        face.Talk(string.Format("Hey, {0}!", player.playerName));
                         face.Talk("I knew you'd be back.");
-                        return;
+                        return player;
                     }
                     face.Talk("Oh.", 2000);
-                    face.Talk("No, That's not right.");
-                    Interaction knowYou = face.YesNo("Do I know you?");
+                    face.TalkInCircles(5000, "No, That's not right.", "Nope");
+                    Interaction knowYou = Memory.GetInstance().Remember("Do I know you?");
+                    if(null == knowYou) knowYou = face.YesNo("Do I know you?");
                     if (knowYou.playerAnswer == Interaction.Answer.No)
                     {
                         face.Talk("Well, no wonder.");
-                        face.Talk("Let's think of a secret");
-                        face.RememberSingleValue("How many pizzas?");
-                        face.Talk("Great!");
-                        return;
+                        return new Interaction() { success = false };
                     }
                     face.Talk("Well then, let's maybe try another");
                 }
-                face.Talk("I've asked them all.  I don't think we've met");
+                face.Talk("Actually, I don't think we've met.");
             }
             else
             {
                 face.Talk("But I guess that's not possible");
             }
+            return new Interaction() { success = false };
+        }
+    }
+
+    public class CreatePlayer : Routine
+    {
+        public override void Init()
+        {
+            routineType = RoutineType.PersonID; 
+        }
+
+        public override Interaction Run()
+        {
+            var renderer = new ConsoleRenderer();
+            var input = new ConsoleInput();
+            var face = new Face(renderer, input);
+
+            face.Talk("Let's think of a secret");
+            string question = Memory.GetInstance().RandomQuestionWithNoAnswer;
+            if (string.IsNullOrEmpty(question))
+            {
+                face.Talk("Sorry, I'm full on friends");
+                return new Interaction() { success = false };
+            }
+
+            Interaction newPlayer = face.RememberSingleValue(question, true);
+            face.Talk("Great!");
+            return newPlayer;
+        }
+    }
+
+    public class ChitChat : Routine
+    {
+        public override void Init()
+        {
+            routineType = RoutineType.Awake;
+        }
+
+        public override Interaction Run()
+        {
+            var renderer = new ConsoleRenderer();
+            var input = new ConsoleInput();
+            var face = new Face(renderer, input);
+
+            face.Talk("So happy to be here!");
+            face.RememberSingleValue("What's new?");
+            face.Talk("Uh huh.");
+            return new Interaction();
         }
     }
 }

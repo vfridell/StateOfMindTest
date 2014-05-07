@@ -8,22 +8,24 @@ namespace StateOfMindTest
 {
     public class StateOfMind
     {
-        private List<Routine> _routines = new List<Routine>();
-
         public StateOfMind()
         {
-            //_routines.Add(new Dream());
-            //_routines.Add(new PersonID());
-            _routines.Add(new PersonIDRun());
         }
 
         public void RunRoutine()
         {
-            foreach (Routine r in _routines)
-            {
-                r.Init();
-                r.Run();
-            }
+            Routine idRoutine = new PersonIDRun();
+            Routine secondOne;
+            idRoutine.Init();
+            Interaction result = idRoutine.Run();
+            if (string.IsNullOrEmpty(result.playerName))
+                secondOne = new CreatePlayer();
+            else
+                secondOne = new ChitChat();
+
+            secondOne.Init();
+            secondOne.Run();
+
         }
         
     }

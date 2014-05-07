@@ -8,6 +8,7 @@ namespace StateOfMindTest
 {
     public class Memory
     {
+        private Random _rand = new Random(4548);
         private static Memory _instance;
         protected Memory() { }
         public static Memory GetInstance()
@@ -15,9 +16,9 @@ namespace StateOfMindTest
             if (null == _instance)
             {
                 _instance = new Memory();
-                _instance.AddToMemory(new Interaction() { resultValue = 5, displayText = "What's the secret number?" }, true);
-                _instance.AddToMemory(new Interaction() { resultValue = 5, displayText = "What's the air speed velocity of a laden swallow?" }, true);
-                _instance.AddToMemory(new Interaction() { resultValue = 5, displayText = "What time do we let the dogs out?" }, true);
+                _instance.AddToMemory(new Interaction() { resultValue = 5, playerName = "Digit", displayText = "What's the secret number?" }, true);
+                _instance.AddToMemory(new Interaction() { resultValue = 5, playerName = "Foom", displayText = "What's the air speed velocity of a laden swallow?" }, true);
+                _instance.AddToMemory(new Interaction() { resultValue = 5, playerName = "Pillfred", displayText = "What time do we let the dogs out?" }, true);
             }
             return _instance;
         }
@@ -73,6 +74,22 @@ namespace StateOfMindTest
             get
             {
                 return Questions.Where<string>(s => Remember(s, true) != null).ToList<string>();
+            }
+        }
+
+        public string RandomQuestionWithNoAnswer
+        {
+            get
+            {
+                if (QuestionsWithAnswers.Count == Questions.Count)
+                    return "";
+
+                string question;
+                do
+                {
+                    question = Questions.FirstOrDefault<string>(s => Remember(s, true) == null && _rand.Next(0, 10) > 5);
+                } while (string.IsNullOrEmpty(question));
+                return question;
             }
         }
 

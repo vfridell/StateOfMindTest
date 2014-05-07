@@ -14,6 +14,8 @@ namespace StateOfMindTest
         public static readonly string AllQuestionsAsked = "I've asked all my questions.";
         public static readonly string NoOneKnown = "Uh, never mind";
 
+        private IndexIncrement _incrementer;
+
         public Face(IScreenRenderer renderer, IGetInput input)
         {
             _renderer = renderer;
@@ -109,6 +111,49 @@ namespace StateOfMindTest
             _renderer.Write(result.displayText);
             Thread.Sleep(millisecondTimeout);
             return result;
+        }
+
+        public void ResetIncrementer()
+        {
+            _incrementer = null;
+        }
+
+        public Interaction TalkInCircles(int millisecondTimeout = 5000, params string[] textLines)
+        {
+            if (null == _incrementer) _incrementer = new IndexIncrement(textLines.Length, true);
+            string text = textLines[_incrementer.Next];
+            Interaction result = new Interaction();
+            _renderer.Clear();
+            _renderer.Write(text);
+            result.displayText = text;
+            Thread.Sleep(millisecondTimeout);
+            return result; ;
+        }
+    }
+
+    public class IndexIncrement
+    {
+        private int _current;
+        private int _max;
+        private bool _loop;
+
+        public IndexIncrement(int max, bool loop)
+        {
+            _current = -1;
+            _max = max;
+            _loop = loop;
+        }
+
+        public int Next
+        {
+            get
+            {
+                _current++;
+                if (_loop && _current >= _max)
+                    _current = 0;
+
+                return _current;
+            }
         }
     }
 }
